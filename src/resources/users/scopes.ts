@@ -4,13 +4,14 @@ import { APIResource } from '../../resource';
 import * as Shared from '../shared';
 import { APIPromise } from '../../api-promise';
 import { RequestOptions } from '../../internal/request-options';
+import { path } from '../../internal/utils/path';
 
 export class Scopes extends APIResource {
   /**
    * Returns a list of scopes that a user is a member of
    */
   list(id: string, options?: RequestOptions): APIPromise<ScopeListResponse> {
-    return this._client.get(`/users/${id}/scopes`, options);
+    return this._client.get(path`/users/${id}/scopes`, options);
   }
 }
 

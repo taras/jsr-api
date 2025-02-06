@@ -3,6 +3,7 @@
 import { APIResource } from '../../../../resource';
 import { APIPromise } from '../../../../api-promise';
 import { RequestOptions } from '../../../../internal/request-options';
+import { path } from '../../../../internal/utils/path';
 
 export class Dependencies extends APIResource {
   /**
@@ -15,7 +16,7 @@ export class Dependencies extends APIResource {
   ): APIPromise<DependencyListResponse> {
     const { scope, package: _package } = params;
     return this._client.get(
-      `/scopes/${scope}/packages/${_package}/versions/${version}/dependencies`,
+      path`/scopes/${scope}/packages/${_package}/versions/${version}/dependencies`,
       options,
     );
   }

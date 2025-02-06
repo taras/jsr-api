@@ -3,6 +3,7 @@
 import { APIResource } from '../../../resource';
 import { APIPromise } from '../../../api-promise';
 import { RequestOptions } from '../../../internal/request-options';
+import { path } from '../../../internal/utils/path';
 
 export class Dependents extends APIResource {
   /**
@@ -14,7 +15,7 @@ export class Dependents extends APIResource {
     options?: RequestOptions,
   ): APIPromise<DependentListResponse> {
     const { scope, ...query } = params;
-    return this._client.get(`/scopes/${scope}/packages/${_package}/dependents`, { query, ...options });
+    return this._client.get(path`/scopes/${scope}/packages/${_package}/dependents`, { query, ...options });
   }
 }
 
