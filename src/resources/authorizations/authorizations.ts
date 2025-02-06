@@ -7,6 +7,7 @@ import { Details } from './details';
 import { APIPromise } from '../../api-promise';
 import { buildHeaders } from '../../internal/headers';
 import { RequestOptions } from '../../internal/request-options';
+import { path } from '../../internal/utils/path';
 
 export class Authorizations extends APIResource {
   details: DetailsAPI.Details = new DetailsAPI.Details(this._client);
@@ -15,7 +16,7 @@ export class Authorizations extends APIResource {
    * Approves an authorization
    */
   approve(code: string, options?: RequestOptions): APIPromise<void> {
-    return this._client.post(`/authorizations/approve/${code}`, {
+    return this._client.post(path`/authorizations/approve/${code}`, {
       ...options,
       headers: buildHeaders([{ Accept: '*/*' }, options?.headers]),
     });
@@ -25,7 +26,7 @@ export class Authorizations extends APIResource {
    * Denies an authorization
    */
   deny(code: string, options?: RequestOptions): APIPromise<void> {
-    return this._client.post(`/authorizations/deny/${code}`, {
+    return this._client.post(path`/authorizations/deny/${code}`, {
       ...options,
       headers: buildHeaders([{ Accept: '*/*' }, options?.headers]),
     });

@@ -5,6 +5,7 @@ import * as Shared from '../shared';
 import { APIPromise } from '../../api-promise';
 import { buildHeaders } from '../../internal/headers';
 import { RequestOptions } from '../../internal/request-options';
+import { path } from '../../internal/utils/path';
 
 export class Members extends APIResource {
   /**
@@ -16,21 +17,21 @@ export class Members extends APIResource {
     options?: RequestOptions,
   ): APIPromise<Shared.ScopeMember> {
     const { scope, ...body } = params;
-    return this._client.patch(`/scopes/${scope}/members/${userID}`, { body, ...options });
+    return this._client.patch(path`/scopes/${scope}/members/${userID}`, { body, ...options });
   }
 
   /**
    * Returns a list of members of a scope
    */
   list(scope: string, options?: RequestOptions): APIPromise<MemberListResponse> {
-    return this._client.get(`/scopes/${scope}/members`, options);
+    return this._client.get(path`/scopes/${scope}/members`, options);
   }
 
   /**
    * Invites a user to a scope
    */
   invite(scope: string, body: MemberInviteParams, options?: RequestOptions): APIPromise<Shared.ScopeInvite> {
-    return this._client.post(`/scopes/${scope}/members`, { body, ...options });
+    return this._client.post(path`/scopes/${scope}/members`, { body, ...options });
   }
 
   /**
@@ -38,7 +39,7 @@ export class Members extends APIResource {
    */
   remove(userID: string, params: MemberRemoveParams, options?: RequestOptions): APIPromise<void> {
     const { scope } = params;
-    return this._client.delete(`/scopes/${scope}/members/${userID}`, {
+    return this._client.delete(path`/scopes/${scope}/members/${userID}`, {
       ...options,
       headers: buildHeaders([{ Accept: '*/*' }, options?.headers]),
     });
