@@ -5,6 +5,7 @@ import * as Shared from '../shared';
 import { APIPromise } from '../../api-promise';
 import { buildHeaders } from '../../internal/headers';
 import { RequestOptions } from '../../internal/request-options';
+import { path } from '../../internal/utils/path';
 
 export class Invites extends APIResource {
   /**
@@ -18,14 +19,14 @@ export class Invites extends APIResource {
    * Accepts an invite to a scope
    */
   accept(scope: string, options?: RequestOptions): APIPromise<Shared.ScopeMember> {
-    return this._client.post(`/user/invites/${scope}`, options);
+    return this._client.post(path`/user/invites/${scope}`, options);
   }
 
   /**
    * Declines an invite to a scope
    */
   decline(scope: string, options?: RequestOptions): APIPromise<void> {
-    return this._client.delete(`/user/invites/${scope}`, {
+    return this._client.delete(path`/user/invites/${scope}`, {
       ...options,
       headers: buildHeaders([{ Accept: '*/*' }, options?.headers]),
     });

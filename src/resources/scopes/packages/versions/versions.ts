@@ -7,6 +7,7 @@ import * as DependenciesAPI from './dependencies';
 import { Dependencies, Dependency, DependencyListParams, DependencyListResponse } from './dependencies';
 import { APIPromise } from '../../../../api-promise';
 import { RequestOptions } from '../../../../internal/request-options';
+import { path } from '../../../../internal/utils/path';
 
 export class Versions extends APIResource {
   dependencies: DependenciesAPI.Dependencies = new DependenciesAPI.Dependencies(this._client);
@@ -20,7 +21,7 @@ export class Versions extends APIResource {
     options?: RequestOptions,
   ): APIPromise<PublishingTasksAPI.PublishingTask> {
     const { scope, package: _package, config, body } = params;
-    return this._client.post(`/scopes/${scope}/packages/${_package}/versions/${version}`, {
+    return this._client.post(path`/scopes/${scope}/packages/${_package}/versions/${version}`, {
       query: { config },
       body: body,
       ...options,
@@ -36,7 +37,7 @@ export class Versions extends APIResource {
     options?: RequestOptions,
   ): APIPromise<Shared.PackageVersion> {
     const { scope, package: _package } = params;
-    return this._client.get(`/scopes/${scope}/packages/${_package}/versions/${version}`, options);
+    return this._client.get(path`/scopes/${scope}/packages/${_package}/versions/${version}`, options);
   }
 
   /**
@@ -48,7 +49,7 @@ export class Versions extends APIResource {
     options?: RequestOptions,
   ): APIPromise<Shared.PackageVersion> {
     const { scope, package: _package, ...body } = params;
-    return this._client.patch(`/scopes/${scope}/packages/${_package}/versions/${version}`, {
+    return this._client.patch(path`/scopes/${scope}/packages/${_package}/versions/${version}`, {
       body,
       ...options,
     });
@@ -63,7 +64,7 @@ export class Versions extends APIResource {
     options?: RequestOptions,
   ): APIPromise<VersionListResponse> {
     const { scope } = params;
-    return this._client.get(`/scopes/${scope}/packages/${_package}/versions`, options);
+    return this._client.get(path`/scopes/${scope}/packages/${_package}/versions`, options);
   }
 }
 
