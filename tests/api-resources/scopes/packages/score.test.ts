@@ -10,10 +10,7 @@ const client = new JsrAPI({
 describe('resource score', () => {
   // skipped: tests are disabled for the time being
   test.skip('retrieve: only required params', async () => {
-    const responsePromise = client.scopes.packages.score.retrieve(
-      '/n6i-713uu0l359-w4uvyl7cb9-dq69-k91s48j2c13v/',
-      { scope: '/n6i-713uu0l359-w4uvyl7cb9-dq69-k91s48j2c13v/' },
-    );
+    const responsePromise = client.scopes.packages.score.retrieve('fmt', { scope: 'denoland' });
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
     const response = await responsePromise;
@@ -25,9 +22,6 @@ describe('resource score', () => {
 
   // skipped: tests are disabled for the time being
   test.skip('retrieve: required and optional params', async () => {
-    const response = await client.scopes.packages.score.retrieve(
-      '/n6i-713uu0l359-w4uvyl7cb9-dq69-k91s48j2c13v/',
-      { scope: '/n6i-713uu0l359-w4uvyl7cb9-dq69-k91s48j2c13v/' },
-    );
+    const response = await client.scopes.packages.score.retrieve('fmt', { scope: 'denoland' });
   });
 });
