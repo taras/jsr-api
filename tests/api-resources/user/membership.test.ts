@@ -10,7 +10,7 @@ const client = new JsrAPI({
 describe('resource membership', () => {
   // skipped: tests are disabled for the time being
   test.skip('retrieve', async () => {
-    const responsePromise = client.user.membership.retrieve('/n6i-713uu0l359-w4uvyl7cb9-dq69-k91s48j2c13v/');
+    const responsePromise = client.user.membership.retrieve('denoland');
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
     const response = await responsePromise;
