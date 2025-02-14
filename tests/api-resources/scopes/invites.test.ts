@@ -10,7 +10,7 @@ const client = new JsrAPI({
 describe('resource invites', () => {
   // skipped: tests are disabled for the time being
   test.skip('list', async () => {
-    const responsePromise = client.scopes.invites.list('/n6i-713uu0l359-w4uvyl7cb9-dq69-k91s48j2c13v/');
+    const responsePromise = client.scopes.invites.list('denoland');
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
     const response = await responsePromise;
@@ -23,7 +23,7 @@ describe('resource invites', () => {
   // skipped: tests are disabled for the time being
   test.skip('delete: only required params', async () => {
     const responsePromise = client.scopes.invites.delete('182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e', {
-      scope: '/n6i-713uu0l359-w4uvyl7cb9-dq69-k91s48j2c13v/',
+      scope: 'denoland',
     });
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
@@ -37,7 +37,7 @@ describe('resource invites', () => {
   // skipped: tests are disabled for the time being
   test.skip('delete: required and optional params', async () => {
     const response = await client.scopes.invites.delete('182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e', {
-      scope: '/n6i-713uu0l359-w4uvyl7cb9-dq69-k91s48j2c13v/',
+      scope: 'denoland',
     });
   });
 });

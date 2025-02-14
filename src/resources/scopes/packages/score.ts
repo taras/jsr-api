@@ -4,6 +4,7 @@ import { APIResource } from '../../../resource';
 import * as PackagesAPI from './packages';
 import { APIPromise } from '../../../api-promise';
 import { RequestOptions } from '../../../internal/request-options';
+import { path } from '../../../internal/utils/path';
 
 export class Score extends APIResource {
   /**
@@ -15,7 +16,7 @@ export class Score extends APIResource {
     options?: RequestOptions,
   ): APIPromise<PackagesAPI.PackageScore> {
     const { scope } = params;
-    return this._client.get(`/scopes/${scope}/packages/${_package}/score`, options);
+    return this._client.get(path`/scopes/${scope}/packages/${_package}/score`, options);
   }
 }
 

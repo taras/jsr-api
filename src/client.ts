@@ -269,24 +269,6 @@ export class JsrAPI {
     return url.toString();
   }
 
-  private calculateContentLength(body: unknown): string | null {
-    if (typeof body === 'string') {
-      if (typeof (globalThis as any).Buffer !== 'undefined') {
-        return (globalThis as any).Buffer.byteLength(body, 'utf8').toString();
-      }
-
-      if (typeof (globalThis as any).TextEncoder !== 'undefined') {
-        const encoder = new (globalThis as any).TextEncoder();
-        const encoded = encoder.encode(body);
-        return encoded.length.toString();
-      }
-    } else if (ArrayBuffer.isView(body)) {
-      return body.byteLength.toString();
-    }
-
-    return null;
-  }
-
   /**
    * Used as a callback for mutating the given `FinalRequestOptions` object.
    */
@@ -527,11 +509,12 @@ export class JsrAPI {
     options: FinalRequestOptions,
     { retryCount = 0 }: { retryCount?: number } = {},
   ): { req: FinalizedRequestInit; url: string; timeout: number } {
+    options = { ...options };
     const { method, path, query } = options;
 
     const url = this.buildURL(path!, query as Record<string, unknown>);
     if ('timeout' in options) validatePositiveInteger('timeout', options.timeout);
-    const timeout = options.timeout ?? this.timeout;
+    options.timeout = options.timeout ?? this.timeout;
     const { bodyHeaders, body } = this.buildBody({ options });
     const reqHeaders = this.buildHeaders({ options, method, bodyHeaders, retryCount });
 
@@ -546,7 +529,7 @@ export class JsrAPI {
       ...((options.fetchOptions as any) ?? {}),
     };
 
-    return { req, url, timeout };
+    return { req, url, timeout: options.timeout };
   }
 
   private buildHeaders({
@@ -572,6 +555,7 @@ export class JsrAPI {
         Accept: 'application/json',
         'User-Agent': this.getUserAgent(),
         'X-Stainless-Retry-Count': String(retryCount),
+        ...(options.timeout ? { 'X-Stainless-Timeout': String(options.timeout) } : {}),
         ...getPlatformHeaders(),
       },
       this._options.defaultHeaders,
