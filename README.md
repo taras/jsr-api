@@ -6,7 +6,7 @@ This library provides convenient access to the Jsr API REST API from server-side
 
 The REST API documentation can be found on [docs.jsr-api.com](https://docs.jsr-api.com). The full API of this library can be found in [api.md](api.md).
 
-It is generated with [Stainless](https://www.stainlessapi.com/).
+It is generated with [Stainless](https://www.stainless.com/).
 
 ## Installation
 
@@ -15,7 +15,7 @@ npm install git+ssh://git@github.com:taras/jsr-api.git
 ```
 
 > [!NOTE]
-> Once this package is [published to npm](https://app.stainlessapi.com/docs/guides/publish), this will become: `npm install jsr-api`
+> Once this package is [published to npm](https://app.stainless.com/docs/guides/publish), this will become: `npm install jsr-api`
 
 ## Usage
 
