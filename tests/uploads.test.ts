@@ -1,6 +1,7 @@
 import fs from 'fs';
 import type { ResponseLike } from 'jsr-api/internal/to-file';
 import { toFile } from 'jsr-api/uploads';
+import { File } from 'node:buffer';
 
 class MyClass {
   name: string = 'foo';
