@@ -1,6 +1,6 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-import { APIResource } from '../../resource';
+import { APIResource } from '../../core/resource';
 import * as Shared from '../shared';
 import * as InvitesAPI from './invites';
 import { InviteListResponse, Invites } from './invites';
@@ -8,7 +8,7 @@ import * as MembershipAPI from './membership';
 import { Membership } from './membership';
 import * as ScopesAPI from './scopes';
 import { ScopeListResponse, Scopes } from './scopes';
-import { APIPromise } from '../../api-promise';
+import { APIPromise } from '../../core/api-promise';
 import { RequestOptions } from '../../internal/request-options';
 
 export class User extends APIResource {
