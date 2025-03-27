@@ -1,2 +1,4 @@
 configured_endpoints: 38
 openapi_spec_url: https://storage.googleapis.com/stainless-sdk-openapi-specs/the-frontside-software-inc%2Fjsr-api-8d4e99f1d713efb471528dbe5307bcd6c138d286b0b1ce58aaae1c21602b0eea.yml
+openapi_spec_hash: 19cc8420d6e21d6a5fe953c87f7ceae1
+config_hash: d2ea3cf794e819aa62ced9cba1e7455c
