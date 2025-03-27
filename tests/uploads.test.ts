@@ -1,6 +1,6 @@
 import fs from 'fs';
 import type { ResponseLike } from 'jsr-api/internal/to-file';
-import { toFile } from 'jsr-api/uploads';
+import { toFile } from 'jsr-api/core/uploads';
 import { File } from 'node:buffer';
 
 class MyClass {
@@ -97,7 +97,7 @@ describe('missing File error message', () => {
   });
 
   test('is thrown', async () => {
-    const uploads = await import('jsr-api/uploads');
+    const uploads = await import('jsr-api/core/uploads');
     await expect(
       uploads.toFile(mockResponse({ url: 'https://example.com/my/audio.mp3' })),
     ).rejects.toMatchInlineSnapshot(
