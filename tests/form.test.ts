@@ -1,5 +1,5 @@
 import { multipartFormRequestOptions, createForm } from 'jsr-api/internal/uploads';
-import { toFile } from 'jsr-api/uploads';
+import { toFile } from 'jsr-api/core/uploads';
 
 describe('form data validation', () => {
   test('valid values do not error', async () => {
