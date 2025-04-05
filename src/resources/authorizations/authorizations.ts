@@ -1,12 +1,13 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-import { APIResource } from '../../resource';
+import { APIResource } from '../../core/resource';
 import * as Shared from '../shared';
 import * as DetailsAPI from './details';
 import { Details } from './details';
-import { APIPromise } from '../../api-promise';
+import { APIPromise } from '../../core/api-promise';
 import { buildHeaders } from '../../internal/headers';
 import { RequestOptions } from '../../internal/request-options';
+import { path } from '../../internal/utils/path';
 
 export class Authorizations extends APIResource {
   details: DetailsAPI.Details = new DetailsAPI.Details(this._client);
@@ -15,7 +16,7 @@ export class Authorizations extends APIResource {
    * Approves an authorization
    */
   approve(code: string, options?: RequestOptions): APIPromise<void> {
-    return this._client.post(`/authorizations/approve/${code}`, {
+    return this._client.post(path`/authorizations/approve/${code}`, {
       ...options,
       headers: buildHeaders([{ Accept: '*/*' }, options?.headers]),
     });
@@ -25,7 +26,7 @@ export class Authorizations extends APIResource {
    * Denies an authorization
    */
   deny(code: string, options?: RequestOptions): APIPromise<void> {
-    return this._client.post(`/authorizations/deny/${code}`, {
+    return this._client.post(path`/authorizations/deny/${code}`, {
       ...options,
       headers: buildHeaders([{ Accept: '*/*' }, options?.headers]),
     });

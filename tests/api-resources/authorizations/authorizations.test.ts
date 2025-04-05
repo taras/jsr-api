@@ -71,9 +71,7 @@ describe('resource authorizations', () => {
   test.skip('start: required and optional params', async () => {
     const response = await client.authorizations.start({
       challenge: '1234567890abcdef',
-      permissions: [
-        { permission: 'package/publish', scope: '/n6i-713uu0l359-w4uvyl7cb9-dq69-k91s48j2c13v/' },
-      ],
+      permissions: [{ permission: 'package/publish', scope: 'denoland' }],
     });
   });
 });

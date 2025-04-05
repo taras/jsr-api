@@ -1,6 +1,6 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-import { APIResource } from '../../resource';
+import { APIResource } from '../../core/resource';
 import * as Shared from '../shared';
 import * as InvitesAPI from './invites';
 import { InviteDeleteParams, InviteListResponse, Invites } from './invites';
@@ -24,9 +24,10 @@ import {
   PackageUpdateParams,
   Packages,
 } from './packages/packages';
-import { APIPromise } from '../../api-promise';
+import { APIPromise } from '../../core/api-promise';
 import { buildHeaders } from '../../internal/headers';
 import { RequestOptions } from '../../internal/request-options';
+import { path } from '../../internal/utils/path';
 
 export class Scopes extends APIResource {
   members: MembersAPI.Members = new MembersAPI.Members(this._client);
@@ -44,21 +45,21 @@ export class Scopes extends APIResource {
    * Returns details of a scope
    */
   retrieve(scope: string, options?: RequestOptions): APIPromise<Shared.Scope> {
-    return this._client.get(`/scopes/${scope}`, options);
+    return this._client.get(path`/scopes/${scope}`, options);
   }
 
   /**
    * Updates the details of a scope
    */
   update(scope: string, body: ScopeUpdateParams, options?: RequestOptions): APIPromise<Shared.Scope> {
-    return this._client.patch(`/scopes/${scope}`, { body, ...options });
+    return this._client.patch(path`/scopes/${scope}`, { body, ...options });
   }
 
   /**
    * Deletes a scope if the scope has no packages
    */
   delete(scope: string, options?: RequestOptions): APIPromise<void> {
-    return this._client.delete(`/scopes/${scope}`, {
+    return this._client.delete(path`/scopes/${scope}`, {
       ...options,
       headers: buildHeaders([{ Accept: '*/*' }, options?.headers]),
     });

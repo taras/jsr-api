@@ -1,9 +1,10 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-import { APIResource } from '../../../resource';
+import { APIResource } from '../../../core/resource';
 import * as PackagesAPI from './packages';
-import { APIPromise } from '../../../api-promise';
+import { APIPromise } from '../../../core/api-promise';
 import { RequestOptions } from '../../../internal/request-options';
+import { path } from '../../../internal/utils/path';
 
 export class Score extends APIResource {
   /**
@@ -15,7 +16,7 @@ export class Score extends APIResource {
     options?: RequestOptions,
   ): APIPromise<PackagesAPI.PackageScore> {
     const { scope } = params;
-    return this._client.get(`/scopes/${scope}/packages/${_package}/score`, options);
+    return this._client.get(path`/scopes/${scope}/packages/${_package}/score`, options);
   }
 }
 

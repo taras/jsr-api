@@ -1,6 +1,6 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-import { APIResource } from '../../../resource';
+import { APIResource } from '../../../core/resource';
 import * as DependentsAPI from './dependents';
 import { DependentListParams, DependentListResponse, Dependents } from './dependents';
 import * as ScoreAPI from './score';
@@ -14,9 +14,10 @@ import {
   VersionUpdateParams,
   Versions,
 } from './versions/versions';
-import { APIPromise } from '../../../api-promise';
+import { APIPromise } from '../../../core/api-promise';
 import { buildHeaders } from '../../../internal/headers';
 import { RequestOptions } from '../../../internal/request-options';
+import { path } from '../../../internal/utils/path';
 
 export class Packages extends APIResource {
   dependents: DependentsAPI.Dependents = new DependentsAPI.Dependents(this._client);
@@ -27,7 +28,7 @@ export class Packages extends APIResource {
    * Creates a new package in a scope
    */
   create(scope: string, body: PackageCreateParams, options?: RequestOptions): APIPromise<Package> {
-    return this._client.post(`/scopes/${scope}/packages`, { body, ...options });
+    return this._client.post(path`/scopes/${scope}/packages`, { body, ...options });
   }
 
   /**
@@ -35,7 +36,7 @@ export class Packages extends APIResource {
    */
   retrieve(_package: string, params: PackageRetrieveParams, options?: RequestOptions): APIPromise<Package> {
     const { scope } = params;
-    return this._client.get(`/scopes/${scope}/packages/${_package}`, options);
+    return this._client.get(path`/scopes/${scope}/packages/${_package}`, options);
   }
 
   /**
@@ -43,7 +44,7 @@ export class Packages extends APIResource {
    */
   update(_package: string, params: PackageUpdateParams, options?: RequestOptions): APIPromise<Package> {
     const { scope, ...body } = params;
-    return this._client.patch(`/scopes/${scope}/packages/${_package}`, { body, ...options });
+    return this._client.patch(path`/scopes/${scope}/packages/${_package}`, { body, ...options });
   }
 
   /**
@@ -54,7 +55,7 @@ export class Packages extends APIResource {
     query: PackageListParams | null | undefined = {},
     options?: RequestOptions,
   ): APIPromise<PackageListResponse> {
-    return this._client.get(`/scopes/${scope}/packages`, { query, ...options });
+    return this._client.get(path`/scopes/${scope}/packages`, { query, ...options });
   }
 
   /**
@@ -62,7 +63,7 @@ export class Packages extends APIResource {
    */
   delete(_package: string, params: PackageDeleteParams, options?: RequestOptions): APIPromise<void> {
     const { scope } = params;
-    return this._client.delete(`/scopes/${scope}/packages/${_package}`, {
+    return this._client.delete(path`/scopes/${scope}/packages/${_package}`, {
       ...options,
       headers: buildHeaders([{ Accept: '*/*' }, options?.headers]),
     });

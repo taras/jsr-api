@@ -11,8 +11,8 @@ describe('resource dependencies', () => {
   // skipped: tests are disabled for the time being
   test.skip('list: only required params', async () => {
     const responsePromise = client.scopes.packages.versions.dependencies.list('1.2.3', {
-      scope: '/n6i-713uu0l359-w4uvyl7cb9-dq69-k91s48j2c13v/',
-      package: '/n6i-713uu0l359-w4uvyl7cb9-dq69-k91s48j2c13v/',
+      scope: 'denoland',
+      package: 'fmt',
     });
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
@@ -26,8 +26,8 @@ describe('resource dependencies', () => {
   // skipped: tests are disabled for the time being
   test.skip('list: required and optional params', async () => {
     const response = await client.scopes.packages.versions.dependencies.list('1.2.3', {
-      scope: '/n6i-713uu0l359-w4uvyl7cb9-dq69-k91s48j2c13v/',
-      package: '/n6i-713uu0l359-w4uvyl7cb9-dq69-k91s48j2c13v/',
+      scope: 'denoland',
+      package: 'fmt',
     });
   });
 });

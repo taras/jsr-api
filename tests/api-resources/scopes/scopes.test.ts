@@ -22,7 +22,7 @@ describe('resource scopes', () => {
 
   // skipped: tests are disabled for the time being
   test.skip('retrieve', async () => {
-    const responsePromise = client.scopes.retrieve('/n6i-713uu0l359-w4uvyl7cb9-dq69-k91s48j2c13v/');
+    const responsePromise = client.scopes.retrieve('denoland');
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
     const response = await responsePromise;
@@ -34,9 +34,7 @@ describe('resource scopes', () => {
 
   // skipped: tests are disabled for the time being
   test.skip('update: only required params', async () => {
-    const responsePromise = client.scopes.update('/n6i-713uu0l359-w4uvyl7cb9-dq69-k91s48j2c13v/', {
-      ghActionsVerifyActor: true,
-    });
+    const responsePromise = client.scopes.update('denoland', { ghActionsVerifyActor: true });
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
     const response = await responsePromise;
@@ -48,14 +46,12 @@ describe('resource scopes', () => {
 
   // skipped: tests are disabled for the time being
   test.skip('update: required and optional params', async () => {
-    const response = await client.scopes.update('/n6i-713uu0l359-w4uvyl7cb9-dq69-k91s48j2c13v/', {
-      ghActionsVerifyActor: true,
-    });
+    const response = await client.scopes.update('denoland', { ghActionsVerifyActor: true });
   });
 
   // skipped: tests are disabled for the time being
   test.skip('delete', async () => {
-    const responsePromise = client.scopes.delete('/n6i-713uu0l359-w4uvyl7cb9-dq69-k91s48j2c13v/');
+    const responsePromise = client.scopes.delete('denoland');
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
     const response = await responsePromise;

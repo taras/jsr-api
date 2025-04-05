@@ -1,11 +1,12 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-import { APIResource } from '../../resource';
+import { APIResource } from '../../core/resource';
 import * as Shared from '../shared';
 import * as ScopesAPI from './scopes';
 import { ScopeListResponse, Scopes } from './scopes';
-import { APIPromise } from '../../api-promise';
+import { APIPromise } from '../../core/api-promise';
 import { RequestOptions } from '../../internal/request-options';
+import { path } from '../../internal/utils/path';
 
 export class Users extends APIResource {
   scopes: ScopesAPI.Scopes = new ScopesAPI.Scopes(this._client);
@@ -14,7 +15,7 @@ export class Users extends APIResource {
    * Returns details of a user
    */
   retrieve(id: string, options?: RequestOptions): APIPromise<Shared.User> {
-    return this._client.get(`/users/${id}`, options);
+    return this._client.get(path`/users/${id}`, options);
   }
 }
 

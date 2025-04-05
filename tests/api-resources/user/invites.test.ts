@@ -22,7 +22,7 @@ describe('resource invites', () => {
 
   // skipped: tests are disabled for the time being
   test.skip('accept', async () => {
-    const responsePromise = client.user.invites.accept('/n6i-713uu0l359-w4uvyl7cb9-dq69-k91s48j2c13v/');
+    const responsePromise = client.user.invites.accept('denoland');
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
     const response = await responsePromise;
@@ -34,7 +34,7 @@ describe('resource invites', () => {
 
   // skipped: tests are disabled for the time being
   test.skip('decline', async () => {
-    const responsePromise = client.user.invites.decline('/n6i-713uu0l359-w4uvyl7cb9-dq69-k91s48j2c13v/');
+    const responsePromise = client.user.invites.decline('denoland');
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
     const response = await responsePromise;

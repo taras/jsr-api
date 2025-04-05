@@ -1,20 +1,22 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 import type { RequestInit, RequestInfo, BodyInit } from './internal/builtin-types';
-import type { HTTPMethod, PromiseOrValue, MergedRequestInit } from './internal/types';
+import type { HTTPMethod, PromiseOrValue, MergedRequestInit, FinalizedRequestInit } from './internal/types';
 import { uuid4 } from './internal/utils/uuid';
-import { validatePositiveInteger, isAbsoluteURL } from './internal/utils/values';
+import { validatePositiveInteger, isAbsoluteURL, safeJSON } from './internal/utils/values';
 import { sleep } from './internal/utils/sleep';
+import { type Logger, type LogLevel, parseLogLevel } from './internal/utils/log';
+export type { Logger, LogLevel } from './internal/utils/log';
 import { castToError, isAbortError } from './internal/errors';
 import type { APIResponseProps } from './internal/parse';
 import { getPlatformHeaders } from './internal/detect-platform';
 import * as Shims from './internal/shims';
 import * as Opts from './internal/request-options';
 import { VERSION } from './version';
-import * as Errors from './error';
-import * as Uploads from './uploads';
+import * as Errors from './core/error';
+import * as Uploads from './core/uploads';
 import * as API from './resources/index';
-import { APIPromise } from './api-promise';
+import { APIPromise } from './core/api-promise';
 import { type Fetch } from './internal/builtin-types';
 import { HeadersLike, NullableHeaders, buildHeaders } from './internal/headers';
 import { FinalRequestOptions, RequestOptions } from './internal/request-options';
@@ -22,7 +24,7 @@ import { PackageListParams, PackageListResponse, Packages } from './resources/pa
 import { PublishingTask, PublishingTasks } from './resources/publishing-tasks';
 import { Stats } from './resources/stats';
 import { readEnv } from './internal/utils/env';
-import { logger } from './internal/utils/log';
+import { formatRequestDetails, loggerFor } from './internal/utils/log';
 import { isEmptyObj } from './internal/utils/values';
 import {
   Authorization,
@@ -35,33 +37,6 @@ import {
 import { ScopeCreateParams, ScopeUpdateParams, Scopes } from './resources/scopes/scopes';
 import { User } from './resources/user/user';
 import { Users } from './resources/users/users';
-
-const safeJSON = (text: string) => {
-  try {
-    return JSON.parse(text);
-  } catch (err) {
-    return undefined;
-  }
-};
-
-type LogFn = (message: string, ...rest: unknown[]) => void;
-export type Logger = {
-  error: LogFn;
-  warn: LogFn;
-  info: LogFn;
-  debug: LogFn;
-};
-export type LogLevel = 'off' | 'error' | 'warn' | 'info' | 'debug';
-const isLogLevel = (key: string | undefined): key is LogLevel => {
-  const levels: Record<LogLevel, true> = {
-    off: true,
-    error: true,
-    warn: true,
-    info: true,
-    debug: true,
-  };
-  return key! in levels;
-};
 
 export interface ClientOptions {
   /**
@@ -124,19 +99,17 @@ export interface ClientOptions {
   /**
    * Set the log level.
    *
-   * Defaults to process.env['JSR_API_LOG'].
+   * Defaults to process.env['JSR_API_LOG'] or 'warn' if it isn't set.
    */
-  logLevel?: LogLevel | undefined | null;
+  logLevel?: LogLevel | undefined;
 
   /**
    * Set the logger.
    *
    * Defaults to globalThis.console.
    */
-  logger?: Logger | undefined | null;
+  logger?: Logger | undefined;
 }
-
-type FinalizedRequestInit = RequestInit & { headers: Headers };
 
 /**
  * API Client for interfacing with the Jsr API API.
@@ -188,14 +161,13 @@ export class JsrAPI {
     this.baseURL = options.baseURL!;
     this.timeout = options.timeout ?? JsrAPI.DEFAULT_TIMEOUT /* 1 minute */;
     this.logger = options.logger ?? console;
-    if (options.logLevel != null) {
-      this.logLevel = options.logLevel;
-    } else {
-      const envLevel = readEnv('JSR_API_LOG');
-      if (isLogLevel(envLevel)) {
-        this.logLevel = envLevel;
-      }
-    }
+    const defaultLogLevel = 'warn';
+    // Set default logLevel early so that we can log a warning in parseLogLevel.
+    this.logLevel = defaultLogLevel;
+    this.logLevel =
+      parseLogLevel(options.logLevel, 'ClientOptions.logLevel', this) ??
+      parseLogLevel(readEnv('JSR_API_LOG'), "process.env['JSR_API_LOG']", this) ??
+      defaultLogLevel;
     this.fetchOptions = options.fetchOptions;
     this.maxRetries = options.maxRetries ?? 2;
     this.fetch = options.fetch ?? Shims.getDefaultFetch();
@@ -269,24 +241,6 @@ export class JsrAPI {
     return url.toString();
   }
 
-  private calculateContentLength(body: unknown): string | null {
-    if (typeof body === 'string') {
-      if (typeof (globalThis as any).Buffer !== 'undefined') {
-        return (globalThis as any).Buffer.byteLength(body, 'utf8').toString();
-      }
-
-      if (typeof (globalThis as any).TextEncoder !== 'undefined') {
-        const encoder = new (globalThis as any).TextEncoder();
-        const encoded = encoder.encode(body);
-        return encoded.length.toString();
-      }
-    } else if (ArrayBuffer.isView(body)) {
-      return body.byteLength.toString();
-    }
-
-    return null;
-  }
-
   /**
    * Used as a callback for mutating the given `FinalRequestOptions` object.
    */
@@ -339,12 +293,13 @@ export class JsrAPI {
     options: PromiseOrValue<FinalRequestOptions>,
     remainingRetries: number | null = null,
   ): APIPromise<Rsp> {
-    return new APIPromise(this, this.makeRequest(options, remainingRetries));
+    return new APIPromise(this, this.makeRequest(options, remainingRetries, undefined));
   }
 
   private async makeRequest(
     optionsInput: PromiseOrValue<FinalRequestOptions>,
     retriesRemaining: number | null,
+    retryOfRequestLogID: string | undefined,
   ): Promise<APIResponseProps> {
     const options = await optionsInput;
     const maxRetries = options.maxRetries ?? this.maxRetries;
@@ -358,7 +313,21 @@ export class JsrAPI {
 
     await this.prepareRequest(req, { url, options });
 
-    logger(this).debug('request', url, options, req.headers);
+    /** Not an API request ID, just for correlating local log entries. */
+    const requestLogID = 'log_' + ((Math.random() * (1 << 24)) | 0).toString(16).padStart(6, '0');
+    const retryLogStr = retryOfRequestLogID === undefined ? '' : `, retryOf: ${retryOfRequestLogID}`;
+    const startTime = Date.now();
+
+    loggerFor(this).debug(
+      `[${requestLogID}] sending request`,
+      formatRequestDetails({
+        retryOfRequestLogID,
+        method: options.method,
+        url,
+        options,
+        headers: req.headers,
+      }),
+    );
 
     if (options.signal?.aborted) {
       throw new Errors.APIUserAbortError();
@@ -366,52 +335,120 @@ export class JsrAPI {
 
     const controller = new AbortController();
     const response = await this.fetchWithTimeout(url, req, timeout, controller).catch(castToError);
+    const headersTime = Date.now();
 
     if (response instanceof Error) {
+      const retryMessage = `retrying, ${retriesRemaining} attempts remaining`;
       if (options.signal?.aborted) {
         throw new Errors.APIUserAbortError();
-      }
-      if (retriesRemaining) {
-        return this.retryRequest(options, retriesRemaining);
-      }
-      if (isAbortError(response)) {
-        throw new Errors.APIConnectionTimeoutError();
       }
       // detect native connection timeout errors
       // deno throws "TypeError: error sending request for url (https://example/): client error (Connect): tcp connect error: Operation timed out (os error 60): Operation timed out (os error 60)"
       // undici throws "TypeError: fetch failed" with cause "ConnectTimeoutError: Connect Timeout Error (attempted address: example:443, timeout: 1ms)"
       // others do not provide enough information to distinguish timeouts from other connection errors
-      if (/timed? ?out/i.test(String(response) + ('cause' in response ? String(response.cause) : ''))) {
+      const isTimeout =
+        isAbortError(response) ||
+        /timed? ?out/i.test(String(response) + ('cause' in response ? String(response.cause) : ''));
+      if (retriesRemaining) {
+        loggerFor(this).info(
+          `[${requestLogID}] connection ${isTimeout ? 'timed out' : 'failed'} - ${retryMessage}`,
+        );
+        loggerFor(this).debug(
+          `[${requestLogID}] connection ${isTimeout ? 'timed out' : 'failed'} (${retryMessage})`,
+          formatRequestDetails({
+            retryOfRequestLogID,
+            url,
+            durationMs: headersTime - startTime,
+            message: response.message,
+          }),
+        );
+        return this.retryRequest(options, retriesRemaining, retryOfRequestLogID ?? requestLogID);
+      }
+      loggerFor(this).info(
+        `[${requestLogID}] connection ${isTimeout ? 'timed out' : 'failed'} - error; no more retries left`,
+      );
+      loggerFor(this).debug(
+        `[${requestLogID}] connection ${isTimeout ? 'timed out' : 'failed'} (error; no more retries left)`,
+        formatRequestDetails({
+          retryOfRequestLogID,
+          url,
+          durationMs: headersTime - startTime,
+          message: response.message,
+        }),
+      );
+      if (isTimeout) {
         throw new Errors.APIConnectionTimeoutError();
       }
       throw new Errors.APIConnectionError({ cause: response });
     }
 
+    const responseInfo = `[${requestLogID}${retryLogStr}] ${req.method} ${url} ${
+      response.ok ? 'succeeded' : 'failed'
+    } with status ${response.status} in ${headersTime - startTime}ms`;
+
     if (!response.ok) {
-      if (retriesRemaining && this.shouldRetry(response)) {
+      const shouldRetry = this.shouldRetry(response);
+      if (retriesRemaining && shouldRetry) {
         const retryMessage = `retrying, ${retriesRemaining} attempts remaining`;
-        logger(this).debug(`response (error; ${retryMessage})`, response.status, url, response.headers);
-        return this.retryRequest(options, retriesRemaining, response.headers);
+
+        // We don't need the body of this response.
+        await Shims.CancelReadableStream(response.body);
+        loggerFor(this).info(`${responseInfo} - ${retryMessage}`);
+        loggerFor(this).debug(
+          `[${requestLogID}] response error (${retryMessage})`,
+          formatRequestDetails({
+            retryOfRequestLogID,
+            url: response.url,
+            status: response.status,
+            headers: response.headers,
+            durationMs: headersTime - startTime,
+          }),
+        );
+        return this.retryRequest(
+          options,
+          retriesRemaining,
+          retryOfRequestLogID ?? requestLogID,
+          response.headers,
+        );
       }
+
+      const retryMessage = shouldRetry ? `error; no more retries left` : `error; not retryable`;
+
+      loggerFor(this).info(`${responseInfo} - ${retryMessage}`);
 
       const errText = await response.text().catch((err: any) => castToError(err).message);
       const errJSON = safeJSON(errText);
       const errMessage = errJSON ? undefined : errText;
-      const retryMessage = retriesRemaining ? `(error; no more retries left)` : `(error; not retryable)`;
 
-      logger(this).debug(
-        `response (error; ${retryMessage})`,
-        response.status,
-        url,
-        response.headers,
-        errMessage,
+      loggerFor(this).debug(
+        `[${requestLogID}] response error (${retryMessage})`,
+        formatRequestDetails({
+          retryOfRequestLogID,
+          url: response.url,
+          status: response.status,
+          headers: response.headers,
+          message: errMessage,
+          durationMs: Date.now() - startTime,
+        }),
       );
 
       const err = this.makeStatusError(response.status, errJSON, errMessage, response.headers);
       throw err;
     }
 
-    return { response, options, controller };
+    loggerFor(this).info(responseInfo);
+    loggerFor(this).debug(
+      `[${requestLogID}] response start`,
+      formatRequestDetails({
+        retryOfRequestLogID,
+        url: response.url,
+        status: response.status,
+        headers: response.headers,
+        durationMs: headersTime - startTime,
+      }),
+    );
+
+    return { response, options, controller, requestLogID, retryOfRequestLogID, startTime };
   }
 
   async fetchWithTimeout(
@@ -425,7 +462,9 @@ export class JsrAPI {
 
     const timeout = setTimeout(() => controller.abort(), ms);
 
-    const isReadableBody = Shims.isReadableLike(options.body);
+    const isReadableBody =
+      ((globalThis as any).ReadableStream && options.body instanceof (globalThis as any).ReadableStream) ||
+      (typeof options.body === 'object' && options.body !== null && Symbol.asyncIterator in options.body);
 
     const fetchOptions: RequestInit = {
       signal: controller.signal as any,
@@ -473,6 +512,7 @@ export class JsrAPI {
   private async retryRequest(
     options: FinalRequestOptions,
     retriesRemaining: number,
+    requestLogID: string,
     responseHeaders?: Headers | undefined,
   ): Promise<APIResponseProps> {
     let timeoutMillis: number | undefined;
@@ -505,7 +545,7 @@ export class JsrAPI {
     }
     await sleep(timeoutMillis);
 
-    return this.makeRequest(options, retriesRemaining - 1);
+    return this.makeRequest(options, retriesRemaining - 1, requestLogID);
   }
 
   private calculateDefaultRetryTimeoutMillis(retriesRemaining: number, maxRetries: number): number {
@@ -527,11 +567,12 @@ export class JsrAPI {
     options: FinalRequestOptions,
     { retryCount = 0 }: { retryCount?: number } = {},
   ): { req: FinalizedRequestInit; url: string; timeout: number } {
+    options = { ...options };
     const { method, path, query } = options;
 
     const url = this.buildURL(path!, query as Record<string, unknown>);
     if ('timeout' in options) validatePositiveInteger('timeout', options.timeout);
-    const timeout = options.timeout ?? this.timeout;
+    options.timeout = options.timeout ?? this.timeout;
     const { bodyHeaders, body } = this.buildBody({ options });
     const reqHeaders = this.buildHeaders({ options, method, bodyHeaders, retryCount });
 
@@ -546,7 +587,7 @@ export class JsrAPI {
       ...((options.fetchOptions as any) ?? {}),
     };
 
-    return { req, url, timeout };
+    return { req, url, timeout: options.timeout };
   }
 
   private buildHeaders({
@@ -572,6 +613,7 @@ export class JsrAPI {
         Accept: 'application/json',
         'User-Agent': this.getUserAgent(),
         'X-Stainless-Retry-Count': String(retryCount),
+        ...(options.timeout ? { 'X-Stainless-Timeout': String(Math.trunc(options.timeout / 1000)) } : {}),
         ...getPlatformHeaders(),
       },
       this._options.defaultHeaders,

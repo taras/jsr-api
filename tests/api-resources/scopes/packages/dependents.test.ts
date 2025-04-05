@@ -10,10 +10,7 @@ const client = new JsrAPI({
 describe('resource dependents', () => {
   // skipped: tests are disabled for the time being
   test.skip('list: only required params', async () => {
-    const responsePromise = client.scopes.packages.dependents.list(
-      '/n6i-713uu0l359-w4uvyl7cb9-dq69-k91s48j2c13v/',
-      { scope: '/n6i-713uu0l359-w4uvyl7cb9-dq69-k91s48j2c13v/' },
-    );
+    const responsePromise = client.scopes.packages.dependents.list('fmt', { scope: 'denoland' });
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
     const response = await responsePromise;
@@ -25,14 +22,11 @@ describe('resource dependents', () => {
 
   // skipped: tests are disabled for the time being
   test.skip('list: required and optional params', async () => {
-    const response = await client.scopes.packages.dependents.list(
-      '/n6i-713uu0l359-w4uvyl7cb9-dq69-k91s48j2c13v/',
-      {
-        scope: '/n6i-713uu0l359-w4uvyl7cb9-dq69-k91s48j2c13v/',
-        limit: 1,
-        page: 1,
-        versions_per_package_limit: 1,
-      },
-    );
+    const response = await client.scopes.packages.dependents.list('fmt', {
+      scope: 'denoland',
+      limit: 1,
+      page: 1,
+      versions_per_package_limit: 1,
+    });
   });
 });
